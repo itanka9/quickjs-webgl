@@ -1,0 +1,17 @@
+WebGL bindings for QuickJs
+
+This is a simple WebGL bindings for QuickJs. Now it not fully complete and use
+GLFW (https://www.glfw.org/) under the hood.
+
+Getting Started 
+
+    make download - download quickjs distro
+    make          - build a shared library
+    make test     - run a simple test
+
+TO DO
+
+    1. Improve bindget to support `glShaderSource` and `glGetVertexAttribPointerv` routines.
+    2. Verify bindings aganist WebGL specification.
+    3. Docs
+    4. Examples
