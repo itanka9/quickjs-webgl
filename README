@@ -11,7 +11,7 @@ Getting Started
 
 TO DO
 
-    1. Improve bindget to support `glShaderSource` and `glGetVertexAttribPointerv` routines.
+    1. Improve bindgen to support `glShaderSource` and `glGetVertexAttribPointerv` routines.
     2. Verify bindings aganist WebGL specification.
     3. Docs
     4. Examples
