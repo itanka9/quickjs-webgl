@@ -9,6 +9,13 @@ Getting Started
     make          - build a shared library
     make test     - run a simple test
 
+Schema
+
+    gl2.h -- (bindgen.js) --> webgl.c \
+                                       + -- (cc) --> webgl.so
+                          additions.c /
+     
+
 TO DO
 
     1. Improve bindgen to support `glShaderSource` and `glGetVertexAttribPointerv` routines.
