@@ -1,4 +1,5 @@
 quickjs
+gl-matrix
 webgl.c
 webgl.so
 webgl.so.*
