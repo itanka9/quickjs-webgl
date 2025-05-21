@@ -12,6 +12,8 @@ async function start() {
     }
 
     gl.viewport(0, 0, 640, 480);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
 
     //const gltfFile = await fetch('/box.gltf').then((r) => r.json());
     const gltfFile = std.parseExtJSON(std.loadFile('./assets/box.gltf'));
@@ -222,7 +224,7 @@ function useMaterial(gl, ctx, materialIndex) {
         logError('useProgram');
 
         const colorLoc = gl.getUniformLocation(program, 'color');
-        gl.uniform4fv(colorLoc, materialConfig.baseColorFactor);
+        gl.uniform4fv(colorLoc, 1, materialConfig.baseColorFactor);
         logError('uniform4fv baseColor');
         materialsSet.set(materialIndex, program);
         return program;
