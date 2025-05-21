@@ -5,6 +5,36 @@
 #include <GLUT/glut.h>
 #include "quickjs/quickjs.h"
 
+#ifdef WEBGL_DEBUG
+#include <stdio.h>
+
+static void debug_check_error(JSContext *ctx, const char *func, int argc, JSValueConst *argv) {
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        fprintf(stderr, "%s(", func);
+        for (int i = 0; i < argc; i++) {
+            const char *s = JS_ToCString(ctx, argv[i]);
+            fprintf(stderr, "%s%s", s ? s : "<value>", i == argc - 1 ? "" : ", ");
+            if (s) JS_FreeCString(ctx, s);
+        }
+        fprintf(stderr, ") -> %s (%d)\n", gluErrorString(err), err);
+    }
+}
+
+#define DEBUG_GL_CHECK(ctx, name, argc, argv) debug_check_error(ctx, name, argc, argv)
+#define DEBUG_GL_CHECK_RAW(name, fmt, ...)                                      \
+    do {                                                                       \
+        GLenum err = glGetError();                                             \
+        if (err != GL_NO_ERROR) {                                              \
+            fprintf(stderr, name "(" fmt ") -> %s (%d)\n",                  \
+                    ##__VA_ARGS__, gluErrorString(err), err);                  \
+        }                                                                      \
+    } while (0)
+#else
+#define DEBUG_GL_CHECK(ctx, name, argc, argv)
+#define DEBUG_GL_CHECK_RAW(name, fmt, ...)
+#endif
+
 #define window_width  640
 #define window_height 480
 
@@ -24,6 +54,7 @@ void renderLoop () {
   JS_Call(ctx, func, JS_UNDEFINED, 0, &args);
 
   glutSwapBuffers();
+  DEBUG_GL_CHECK_RAW("glutSwapBuffers", "");
 }
 
 /**
@@ -39,11 +70,17 @@ static JSValue js_getContext()
     char *argv[1] = {""};
 
     glutInit(&argc, argv);
+    DEBUG_GL_CHECK_RAW("glutInit", "%d, %p", argc, argv);
     glutInitWindowSize(window_width, window_height);
+    DEBUG_GL_CHECK_RAW("glutInitWindowSize", "%d, %d", window_width, window_height);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
+    DEBUG_GL_CHECK_RAW("glutInitDisplayMode", "%d", GLUT_RGB | GLUT_DOUBLE);
     glutCreateWindow("QuickJS WebGL");
+    DEBUG_GL_CHECK_RAW("glutCreateWindow", "\"%s\"", "QuickJS WebGL");
     glutDisplayFunc(renderLoop);
+    DEBUG_GL_CHECK_RAW("glutDisplayFunc", "%p", renderLoop);
     glutIdleFunc(renderLoop);
+    DEBUG_GL_CHECK_RAW("glutIdleFunc", "%p", renderLoop);
 
     contextGot = 1;
 
@@ -52,6 +89,7 @@ static JSValue js_getContext()
 
 static JSValue js_start(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
   glutMainLoop();
+  DEBUG_GL_CHECK_RAW("glutMainLoop", "");
   return JS_UNDEFINED;
 }
 
@@ -65,6 +103,7 @@ static JSValue js_glShaderSource(JSContext *ctx, JSValueConst this_val, int argc
     int slen = strlen(a1);
     
     glShaderSource(a0, 1, &a1, &slen);
+    DEBUG_GL_CHECK(ctx, "glShaderSource", argc, argv);
 
     return JS_UNDEFINED;
 }
@@ -79,6 +118,7 @@ static JSValue js_glGetVertexAttribPointerv(JSContext *ctx, JSValueConst this_va
 static JSValue js_createBuffer(JSContext *ctx) {
   GLuint res;
   glGenBuffers(1, &res);
+  DEBUG_GL_CHECK(ctx, "glGenBuffers", 0, NULL);
 
   return JS_NewInt32(ctx, res);
 }
@@ -113,7 +153,8 @@ static JSValue js_glGetShaderInfoLog(JSContext *ctx, JSValueConst this_val, int 
 	if (JS_ToUint32(ctx, &a0, argv[0])) return JS_EXCEPTION;
 	
   unsigned int length;
-	glGetShaderInfoLog(a0, LOG_BUFF_SIZE, &length, log_buff);
+        glGetShaderInfoLog(a0, LOG_BUFF_SIZE, &length, log_buff);
+  DEBUG_GL_CHECK(ctx, "glGetShaderInfoLog", argc, argv);
 
   return JS_NewString(ctx, log_buff);
 }
@@ -123,8 +164,9 @@ static JSValue js_glGetProgramInfoLog(JSContext *ctx, JSValueConst this_val, int
   unsigned int a0; // program
 	if (JS_ToUint32(ctx, &a0, argv[0])) return JS_EXCEPTION;
 	
-	unsigned int length = LOG_BUFF_SIZE;
-	glGetProgramInfoLog(a0, LOG_BUFF_SIZE, &length, log_buff);
+        unsigned int length = LOG_BUFF_SIZE;
+        glGetProgramInfoLog(a0, LOG_BUFF_SIZE, &length, log_buff);
+  DEBUG_GL_CHECK(ctx, "glGetProgramInfoLog", argc, argv);
 
   return JS_NewString(ctx, log_buff);
 }
@@ -140,10 +182,11 @@ static JSValue js_glDrawElements(JSContext *ctx, JSValueConst this_val, int argc
 	unsigned int a2; // type
 	if (JS_ToUint32(ctx, &a2, argv[2])) return JS_EXCEPTION;
 	
-	unsigned int a3; // offset
-	if (JS_ToUint32(ctx, &a3, argv[3])) return JS_EXCEPTION;
-	
-	glDrawElements(a0, a1, a2, a3);
+        unsigned int a3; // offset
+        if (JS_ToUint32(ctx, &a3, argv[3])) return JS_EXCEPTION;
+
+        glDrawElements(a0, a1, a2, a3);
+  DEBUG_GL_CHECK(ctx, "glDrawElements", argc, argv);
 
   return JS_UNDEFINED;
 }
