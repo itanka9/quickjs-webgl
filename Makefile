@@ -21,7 +21,7 @@ $(QJS): $(QJS_SRC) quickjs-2024-01-13.tar.xz
 $(QJS_DIST): 
 	wget https://bellard.org/quickjs/$(QJS_DIST)
 
-download: $(QJS_DIST)
+$(QJS_SRC): $(QJS_DIST)
 	mkdir -p $(QJS_DIR)
 	tar xf $(QJS_DIST) -C $(QJS_DIR) --strip-components=1
 

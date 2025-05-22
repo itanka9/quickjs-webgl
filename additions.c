@@ -70,11 +70,8 @@ static JSValue js_getContext()
     char *argv[1] = {""};
 
     glutInit(&argc, argv);
-    // DEBUG_GL_CHECK_RAW("glutInit", "%d, %p", argc, argv);
     glutInitWindowSize(window_width, window_height);
-    DEBUG_GL_CHECK_RAW("glutInitWindowSize", "%d, %d", window_width, window_height);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-    DEBUG_GL_CHECK_RAW("glutInitDisplayMode", "%d", GLUT_RGB | GLUT_DOUBLE);
     glutCreateWindow("QuickJS WebGL");
     DEBUG_GL_CHECK_RAW("glutCreateWindow", "\"%s\"", "QuickJS WebGL");
     glutDisplayFunc(renderLoop);
