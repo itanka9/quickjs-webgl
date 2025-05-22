@@ -1,6 +1,6 @@
 import * as std from "std";
 import * as gl from './webgl.so';
-import * as mat4 from './gl-matrix/src/mat4.js';
+import * as mat4 from './js/mat4.js';
 
 async function start() {
     //const canvas = document.getElementById('screen');
