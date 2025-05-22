@@ -195,6 +195,9 @@ function createProcDef(name, retType, args) {
     } else {
         body.push(`${name}(${callArgs});`)
     }
+    body.push('#ifdef WEBGL_DEBUG');
+    body.push(`DEBUG_GL_CHECK(ctx, "${name}", argc, argv);`);
+    body.push('#endif');
 
     const proc = `static JSValue js_${name}(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)
 {
