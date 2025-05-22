@@ -6,8 +6,11 @@ QJS_LIB_OBJS=$(OBJDIR)/quickjs.o $(OBJDIR)/libregexp.o $(OBJDIR)/libunicode.o $(
 QJS=$(QJS_DIR)/qjs
 QJS_SRC=$(QJS_DIR)/qjs.c
 
+CFLAGS := -DWEBGL_DEBUG=2  -DJS_SHARED_LIBRARY
+LDFLAGS := -shared -g -flto -Wno-everything -framework GLUT -framework OpenGL
+
 webgl.so: webgl.c $(QJS_LIB_OBJS)
-	clang -shared -g -flto -Wno-everything -framework GLUT -framework OpenGL -DJS_SHARED_LIBRARY -o $@ $^
+	clang $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 webgl.c: bindgen.js gl2.h additions.c $(QJS)
 	$(QJS) bindgen.js > webgl.c

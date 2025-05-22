@@ -10,7 +10,7 @@
 
 static void debug_check_error(JSContext *ctx, const char *func, int argc, JSValueConst *argv) {
     GLenum err = glGetError();
-    if (err != GL_NO_ERROR) {
+    if (err != GL_NO_ERROR || WEBGL_DEBUG > 1) {
         fprintf(stderr, "%s(", func);
         for (int i = 0; i < argc; i++) {
             const char *s = JS_ToCString(ctx, argv[i]);
@@ -23,9 +23,9 @@ static void debug_check_error(JSContext *ctx, const char *func, int argc, JSValu
 
 #define DEBUG_GL_CHECK(ctx, name, argc, argv) debug_check_error(ctx, name, argc, argv)
 #define DEBUG_GL_CHECK_RAW(name, fmt, ...)                                      \
-    do {                                                                       \
+    do {                                                                          \
         GLenum err = glGetError();                                             \
-        if (err != GL_NO_ERROR) {                                              \
+        if (err != GL_NO_ERROR || WEBGL_DEBUG > 1) {                                              \
             fprintf(stderr, name "(" fmt ") -> %s (%d)\n",                  \
                     ##__VA_ARGS__, gluErrorString(err), err);                  \
         }                                                                      \
@@ -70,7 +70,7 @@ static JSValue js_getContext()
     char *argv[1] = {""};
 
     glutInit(&argc, argv);
-    DEBUG_GL_CHECK_RAW("glutInit", "%d, %p", argc, argv);
+    // DEBUG_GL_CHECK_RAW("glutInit", "%d, %p", argc, argv);
     glutInitWindowSize(window_width, window_height);
     DEBUG_GL_CHECK_RAW("glutInitWindowSize", "%d, %d", window_width, window_height);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
