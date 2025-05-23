@@ -21,7 +21,8 @@ GLFW (https://www.glfw.org/) under the hood.
 
 ## TO DO
 
-    1. Add standard JS polymorphism in places where binary data passed down to GLUT (now only ArrayBuffer supported).
+    1. Add standard JS polymorphism in places where binary data passed down to GLUT 
+       (now only ArrayBuffer supported).
     2. Verify bindings aganist WebGL specification (maybe grab and apply tests somewhere).
     3. Support for loading and display textures
     3. Write docs
