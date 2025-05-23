@@ -71,7 +71,7 @@ static JSValue js_getContext()
 
     glutInit(&argc, argv);
     glutInitWindowSize(window_width, window_height);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH | GLUT_ALPHA);
     glutCreateWindow("QuickJS WebGL");
     DEBUG_GL_CHECK_RAW("glutCreateWindow", "\"%s\"", "QuickJS WebGL");
     glutDisplayFunc(renderLoop);
@@ -111,6 +111,35 @@ static JSValue js_glGetVertexAttribPointerv(JSContext *ctx, JSValueConst this_va
 
     return JS_UNDEFINED;
 }
+
+static JSValue js_glVertexAttribPointer(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)
+{
+    unsigned int a0; // indx
+	if (JS_ToUint32(ctx, &a0, argv[0])) return JS_EXCEPTION;
+	
+	int a1; // size
+	if (JS_ToInt32(ctx, &a1, argv[1])) return JS_EXCEPTION;
+	
+	unsigned int a2; // type
+	if (JS_ToUint32(ctx, &a2, argv[2])) return JS_EXCEPTION;
+	
+	unsigned int a3; // normalized
+	a3 = JS_ToBool(ctx, argv[3]);
+	
+	const khronos_ssize_t a4; // stride
+	if (JS_ToInt32(ctx, &a4, argv[4])) return JS_EXCEPTION;
+	
+  unsigned int a5; // offset
+	if (JS_ToUint32(ctx, &a5, argv[5])) return JS_EXCEPTION;
+	
+	glVertexAttribPointer(a0,a1,a2,a3,a4,a5);
+	#ifdef WEBGL_DEBUG
+	DEBUG_GL_CHECK(ctx, "glVertexAttribPointer", argc, argv);
+	#endif
+
+    return JS_UNDEFINED;
+}
+
 
 static JSValue js_createBuffer(JSContext *ctx) {
   GLuint res;
@@ -179,10 +208,10 @@ static JSValue js_glDrawElements(JSContext *ctx, JSValueConst this_val, int argc
 	unsigned int a2; // type
 	if (JS_ToUint32(ctx, &a2, argv[2])) return JS_EXCEPTION;
 	
-        unsigned int a3; // offset
-        if (JS_ToUint32(ctx, &a3, argv[3])) return JS_EXCEPTION;
+  unsigned int a3; // offset
+  if (JS_ToUint32(ctx, &a3, argv[3])) return JS_EXCEPTION;
 
-        glDrawElements(a0, a1, a2, a3);
+  glDrawElements(a0, a1, a2, (GLvoid*)0);
   DEBUG_GL_CHECK(ctx, "glDrawElements", argc, argv);
 
   return JS_UNDEFINED;

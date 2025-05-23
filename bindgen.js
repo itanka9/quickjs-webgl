@@ -6,6 +6,7 @@ const disabledFunctions = {
     'glGetShaderInfoLog': { argsCount: 1 },
     'glGetProgramInfoLog': { argsCount: 1 },
     'glDrawElements': { argsCount: 4 },
+    'glVertexAttribPointer': { argsCount: 5 }
 };
 
 const additionsFunctions = {
@@ -16,6 +17,7 @@ const additionsFunctions = {
     'glGetShaderInfoLog': 1,
     'glGetProgramInfoLog': 1,
     'glDrawElements': 1,
+    'glVertexAttribPointer': 1,
     'start': 1
 }
 
@@ -140,21 +142,29 @@ function createProcDef(name, retType, args) {
             case 'GLenum*':
             case 'GLuint*':
                 body.push(`const unsigned int *a${i}; // ${argName}`);
-                body.push(`a${i} = JS_GetArrayBuffer(ctx, &a${i - 1}, argv[0]);`);
+                body.push(`size_t a${i}_len;`);
+                body.push(`a${i} = JS_GetArrayBuffer(ctx, &a${i}_len, argv[${i}]);`);
+                body.push(`if (!a${i}) return JS_EXCEPTION;`)
                 break;
             case 'GLsizei*':
             case 'GLint*':
                 body.push(`const int *a${i}; // ${argName}`);
-                body.push(`a${i} = JS_GetArrayBuffer(ctx, &a${i - 1}, argv[0]);`);
+                body.push(`size_t a${i}_len;`);
+                body.push(`a${i} = JS_GetArrayBuffer(ctx, &a${i}_len, argv[${i}]);`);
+                body.push(`if (!a${i}) return JS_EXCEPTION;`)
                 break;
             case 'GLfloat*':
                 body.push(`const float *a${i}; // ${argName}`);
-                body.push(`a${i} = JS_GetArrayBuffer(ctx, &a${i - 1}, argv[0]);`);
-                break;    
+                body.push(`size_t a${i}_len;`);
+                body.push(`a${i} = JS_GetArrayBuffer(ctx, &a${i}_len, argv[${i}]);`);
+                body.push(`if (!a${i}) return JS_EXCEPTION;`)
+                break;
             case 'GLboolean*':
             case 'GLvoid*':
                 body.push(`const uint8_t *a${i}; // ${argName}`);
-                body.push(`a${i} = JS_GetArrayBuffer(ctx, &a${i - 1}, argv[0]);`);
+                body.push(`size_t a${i}_len;`);
+                body.push(`a${i} = JS_GetArrayBuffer(ctx, &a${i}_len, argv[${i}]);`);
+                body.push(`if (!a${i}) return JS_EXCEPTION;`)
                 break;
             case 'GLintptr':
                 body.push(`const khronos_intptr_t *a${i}; // ${argName}`);

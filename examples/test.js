@@ -1,4 +1,4 @@
-import * as GL from './webgl.so';
+import * as GL from '../webgl.so';
 
 GL.getContext();
 console.log(GL.getString(GL.RENDERER));
