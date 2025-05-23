@@ -1,10 +1,8 @@
 import * as std from "std";
-import * as gl from './webgl.so';
-import * as mat4 from './js/mat4.js';
+import * as gl from '../webgl.so';
+import * as mat4 from '../js/mat4.js';
 
 async function start() {
-    //const canvas = document.getElementById('screen');
-    //const gl = window.gl = canvas.getContext('webgl', { alpha: true });
     gl.getContext();
     if (!gl) {
         console.log('fuck');
@@ -15,14 +13,10 @@ async function start() {
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
 
-    //const gltfFile = await fetch('/box.gltf').then((r) => r.json());
     const gltfFile = std.parseExtJSON(std.loadFile('./assets/box.gltf'));
-    // const buffers = await Promise.all(
-    //     gltfFile.buffers.map((buffer) => fetch(buffer.uri).then((r) => r.arrayBuffer())),
-    // );
     const buffers = gltfFile.buffers.map(({ byteLength, uri }) => {
         const ab = new ArrayBuffer(byteLength);
-        const f = std.open('./assets/' + uri, 'r');
+        const f = std.open('./assets/' + uri, 'rb');
         f.read(ab, 0, byteLength);
         f.close();
         return ab;
@@ -43,14 +37,17 @@ function renderLoop(ctx, scene) {
     let i = 0;
 
     function step() {
-        console.log('frame ', i);
         i++;
         gl.clearColor(0, 0, 0.3 + 0.1 * (1 + Math.sin(i * Math.PI / 90)), 1);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        mat4.rotate(ctx.matrices[0], ctx.matrices[0], 0.05, [0.2, 0.3, 0.2]);
+        mat4.rotate(ctx.matrices[0], ctx.matrices[0], 0.01, [0.2, 0.3, 0.2]);
 
-        drawNodes(ctx, scene.nodes);
+        try {
+            drawNodes(ctx, scene.nodes);
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     gl.requestAnimationFrame(step);
@@ -82,13 +79,17 @@ function useBuffer(ctx, accessor) {
             gl.STATIC_DRAW,
         );
         logError('bufferData');
-        gl.bindBuffer(bufferView.target, 0);
         glBuffers[accessor.bufferView] = buffer;
     } else {
         gl.bindBuffer(bufferView.target, glBuffers[accessor.bufferView]);
         logError('bindeBuffer');
     }
 }
+
+const proj = new Float32Array(16);
+mat4.perspective(proj, Math.PI/4, 640/480, 1, 10);
+const view = new Float32Array(16);
+mat4.lookAt(view, [2, 2, 2], [0, 0, 0], [0, 1, 0]);
 
 function drawNodes(ctx, nodes) {
     // const gl = ctx.gl;
@@ -125,9 +126,10 @@ function drawNodes(ctx, nodes) {
                         accessor.componentType,
                         true,
                         bufferView.byteStride ?? 0,
-                        bufferView.byteOffset + accessor.byteOffset,
+                        accessor.byteOffset,
                     );
                     logError('vertexAttribPointer');
+                    
                     count = Math.max(count, accessor.count);
                 }
 
@@ -141,12 +143,17 @@ function drawNodes(ctx, nodes) {
                 const matrixLoc = gl.getUniformLocation(program, 'matrix');
                 logError('getUniformLocation(matrix)');
 
-                const mprod = new Float32Array(ctx.matrices[0]);
                 
+                const mprod = new Float32Array(ctx.matrices[0]);
                 for (let i = 1; i < ctx.matrices.length; i++) {
                     mat4.mul(mprod, mprod, ctx.matrices[i]);
                 }
-                gl.uniformMatrix4fv(matrixLoc, 1, false, mprod);
+
+                const mvp = new Float32Array(16);
+                mat4.mul(mvp, proj, view);
+                mat4.mul(mvp, mvp, mprod);
+
+                gl.uniformMatrix4fv(matrixLoc, 1, false, mvp.buffer);
                 logError('uniformMatrix4fv(matrix)');
                 if (elementAccessor) {
                     gl.drawElements(
@@ -190,7 +197,7 @@ function useMaterial(gl, ctx, materialIndex) {
         uniform vec4 color;
          
         void main() {
-          gl_FragColor = color * vec4(gl_FragCoord.z, 1., 1., 1.);
+          gl_FragColor = color * gl_FragCoord.z;
         }`;
 
         const vs = gl.createShader(gl.VERTEX_SHADER);
@@ -224,7 +231,7 @@ function useMaterial(gl, ctx, materialIndex) {
         logError('useProgram');
 
         const colorLoc = gl.getUniformLocation(program, 'color');
-        gl.uniform4fv(colorLoc, 1, materialConfig.baseColorFactor);
+        gl.uniform4fv(colorLoc, 1, new Float32Array(materialConfig.baseColorFactor).buffer);
         logError('uniform4fv baseColor');
         materialsSet.set(materialIndex, program);
         return program;

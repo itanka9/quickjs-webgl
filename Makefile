@@ -6,7 +6,8 @@ QJS_LIB_OBJS=$(OBJDIR)/quickjs.o $(OBJDIR)/libregexp.o $(OBJDIR)/libunicode.o $(
 QJS=$(QJS_DIR)/qjs
 QJS_SRC=$(QJS_DIR)/qjs.c
 
-CFLAGS := -DWEBGL_DEBUG=2  -DJS_SHARED_LIBRARY
+# CFLAGS := -DWEBGL_DEBUG=2 -DJS_SHARED_LIBRARY
+CFLAGS := -DJS_SHARED_LIBRARY
 LDFLAGS := -shared -g -flto -Wno-everything -framework GLUT -framework OpenGL
 
 webgl.so: webgl.c $(QJS_LIB_OBJS)
@@ -15,7 +16,7 @@ webgl.so: webgl.c $(QJS_LIB_OBJS)
 webgl.c: bindgen.js gl2.h additions.c $(QJS)
 	$(QJS) bindgen.js > webgl.c
 
-$(QJS): $(QJS_SRC) quickjs-2024-01-13.tar.xz
+$(QJS): $(QJS_SRC) 
 	cd $(QJS_DIR); make; cd ..
 
 $(QJS_DIST): 
@@ -29,10 +30,10 @@ clean:
 	rm webgl.c webgl.so
 
 test: $(QJS) webgl.so
-	$(QJS) test.js
+	$(QJS) examples/test.js
 
 rawgltf: $(QJS) webgl.so
-	$(QJS) rawgltf.js
+	$(QJS) examples/rawgltf.js
 
 distclean:
 	make clean
